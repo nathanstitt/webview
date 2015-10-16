@@ -10,7 +10,7 @@ define (require) ->
   return new class LinksHelper
     componentRegEx: ///
     ^contents/    # After contents/
-    ([^:@/]+)     # uuid up to delimiter
+    ([^:@/?]+)     # uuid up to delimiter
     @?            # Optional @
     ([^:/?]*)     # Revision
     :?            # Optional :

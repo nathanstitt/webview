@@ -6,6 +6,7 @@ define (require) ->
   FindContentView = require('cs!modules/find-content/find-content')
   BrowseContentView = require('cs!modules/browse-content/browse-content')
   MediaView = require('cs!modules/media/media')
+  ConceptCoachModalView = require('cs!pages/contents/concept-coach-modal/concept-coach')
   template = require('hbs!./contents-template')
   require('less!./contents')
 
@@ -24,13 +25,29 @@ define (require) ->
       @version = options.version
       @page = options.page
       @title = options.title
+      @coach = options.qs == '?coach'
+      @conceptCoachModal = new ConceptCoachModalView()
+      @conceptCoachButton = $('<button id="summon-concept-coach" class="btn">').text('Coach Me!')
 
     regions:
       contents: '#contents'
 
+    events:
+      'click #summon-concept-coach': 'showConceptCoach'
+
+    showConceptCoach: ->
+      @regions.self.appendOnce
+        view: @conceptCoachModal
+        as: 'div id="section-name-modal" class="modal fade"'
+      setTimeout(=>
+        @conceptCoachModal.$el.modal('show')
+      , 0)
+
     onRender: () ->
       @parent.regions.footer.show(new FooterView({page: 'contents'}))
       @regions.contents.show(new FindContentView())
+      console.debug("Coach: #{@coach}")
+      if @coach then @showConceptCoach()
 
       #clearTimeout(@_pollingContentTimer)
 
@@ -40,29 +57,10 @@ define (require) ->
         @regions.contents.append(view)
 
         ###
-        # Start polling for changes
-        @listenTo(view.model, 'change:changed-remotely', @displayChangedRemotely)
-        @listenTo(view.model, 'change:currentPage.changed-remotely', @displayChangedRemotely)
-
-        pollRemoteUpdates = () =>
-          # If the view is detached (the user moved to a different piece of content)
-          # then stop polling for updates
-          if view.model
-            # Check for updates on the content as well as the current Page (if it exists)
-            promises = [view.model.fetch({skipDownloads:true, doNotRerender:true})]
-            page = view.model.asPage()
-
-            if page # If viewing an empty collection, no page exists
-              if view.model isnt page and page.isDraft()
-                promises.push(page.fetch({skipDownloads:true, doNotRerender:true}))
-
-              $.when(promises)
-              .then () =>
-                @_pollingContentTimer = setTimeout(pollRemoteUpdates, POLLING_REFRESH)
-
-        @_pollingContentTimer = setTimeout(pollRemoteUpdates, POLLING_REFRESH)
+        only do this if the content is coachable
         ###
-
+        @regions.contents.$el.find('.media-footer').before(@conceptCoachButton)
+        console.debug("Coach button:", @conceptCoachButton)
       else
         @parent.regions.header.show(new HeaderView({page: 'contents', url: 'content'}))
         @regions.contents.append(new BrowseContentView())
