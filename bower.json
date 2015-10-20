@@ -22,7 +22,8 @@
     "require-less": "0.1.5",
     "require-handlebars-plugin": "1.0.0",
     "aloha-editor": "oerpub/Aloha-Editor#master",
-    "select2": "3.5.4"
+    "select2": "3.5.4",
+    "react-components": "openstax/react-components#v0.0.0"
   },
   "devDependencies": {
     "chai": "3.2.0",

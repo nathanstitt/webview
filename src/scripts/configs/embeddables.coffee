@@ -18,11 +18,11 @@ define (require) ->
 
       # # Adds flexibility for if data needs transformation post API call
       # # For now, not needed for when using actual API.  Comment in if using local stub.
-      # filterDataCallback: (data) ->
+      filterDataCallback: (data) ->
 
-      #   data.items = _.filter(data.items, (item) ->
-      #     _.indexOf(item.tags, @itemCode) > -1
-      #   , @)
+        data.items = _.filter(data.items, (item) ->
+          _.indexOf(item.tags, @itemCode) > -1
+        , @)
 
       onRender: ($parent) ->
         # For the maths.  you know. it do what it do.

@@ -54,12 +54,15 @@
         return 'https://openstaxtutor.org/terp/' + itemCode + '/quiz_start';
       },
 
-      exerciseUrl: function (itemCode) {
-        // // stub.  Comment out to use local exercises stub.
-        // // Copied from https://exercises-dev1.openstax.org/api/exercises?q=tag:k12phys-ch04-s01-lo01
-        // return 'http://localhost:8000/data/exercises.json';
-        return 'https://exercises-dev1.openstax.org/api/exercises?q=tag:' + itemCode;
+      // stub.  Uncomment to use local exercises stub.
+      exerciseUrl: function () {
+        // Copied from https://exercises-dev1.openstax.org/api/exercises?q=tag:k12phys-ch04-s01-lo01
+        return 'http://localhost:8000/data/exercises.json';
       },
+
+      // exerciseUrl: function (itemCode) {
+      //   return 'https://exercises-dev1.openstax.org/api/exercises?q=tag:' + itemCode;
+      // },
 
       defaultLicense: {
         code: 'by'

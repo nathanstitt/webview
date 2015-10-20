@@ -20,6 +20,8 @@ define (require) ->
     require('hbs!./embeddables/fake-exercises/ex004')
   ]
 
+  exerciseReact = require('cs!./embeddables/exercise-react')
+
   return class MediaBodyView extends EditableView
     key = []
     media: 'page'
@@ -162,7 +164,7 @@ define (require) ->
             $el.css('counter-reset', 'list-item ' + $el.attr('start'))
 
           # # uncomment to embed fake exercises and see embeddable exercises in action
-          # @fakeExercises($temp)
+          @fakeExercises($temp)
 
           @initializeEmbeddableQueues()
           @findEmbeddables($temp.find('#content'))
@@ -204,13 +206,13 @@ define (require) ->
     renderEmbeddable: (embeddableItem) =>
       # finds fresh element in @$el if a selector is provided
       # instead of the element itself.
-
       embeddableItem.$el = @$el.find(embeddableItem.selector) if embeddableItem.selector
+      exerciseReact(embeddableItem.$el[0], embeddableItem.data)
 
-      $parent = embeddableItem.$el.parent()
-      embeddableItem.$el.replaceWith(embeddableItem.html)
+      # $parent = embeddableItem.$el.parent()
+      # embeddableItem.$el.replaceWith(embeddableItem.html)
 
-      embeddableItem.onRender?($parent)
+      # embeddableItem.onRender?($parent)
 
 
     # handles all embeddables -- finds and processes them
@@ -337,7 +339,6 @@ define (require) ->
 
     # Renders html through template and then adds embeddableItem to the queue for rendering
     _addToRenderQueue: (embeddableItem) =>
-
       embeddableItem.html = embeddableItem.template(embeddableItem)
 
       @renderEmbeddableQueue.push(embeddableItem)
