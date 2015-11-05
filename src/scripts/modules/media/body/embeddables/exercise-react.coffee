@@ -1,31 +1,9 @@
 define (require) ->
-  {Exercise} = require('OpenStaxReactComponents')
+  cc = require('OpenStaxReactComponents')
+  cc.init('http://localhost:3001')
 
+  # cc.on('user.change', ->
+  #   cc.open(mainDiv)
+  # )
   return (node, data) ->
-    step = _.clone(data.items[0])
-    step.content = _.pick(step, 'questions')
-
-    getProps = ->
-      props =
-        id: step.content.questions[0].id
-        taskId: '1'
-        onStepCompleted: ->
-          console.info('onStepCompleted')
-        onNextStep: ->
-          console.info('onNextStep')
-        step: step
-        getCurrentPanel: (stepId) ->
-          panel = 'free-response'
-          if step.answer_id
-            panel = 'review'
-          if step.free_response
-            panel = 'multiple-choice'
-          panel
-        setAnswerId: (stepId, answerId) ->
-          step.answer_id = answerId
-          exercise?.setProps?(getProps())
-        setFreeResponseAnswer: (stepId, freeResponse) ->
-          step.free_response = freeResponse
-          exercise?.setProps?(getProps())
-
-    exercise = Exercise(node.parentNode, getProps())
+    cc.open(node.parentNode, collectionUUID: 'd52e93f4-8653-4273-86da-3850001c0786', moduleUUID: '0c917d7d-0d1d-4a21-afbe-7d66bce2782c')
