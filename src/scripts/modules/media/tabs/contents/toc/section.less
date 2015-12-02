@@ -1,17 +1,133 @@
 @import "../../../../../../styles/variables.less";
 @import "../../../../../../styles/mixins.less";
 
-.media-tabs .contents .contents > .toc {
+.table-of-contents > .toc {
   ul {
-    padding: 0 2rem;
+    padding: 0 0 0.5rem 1.5rem;
     font-size: 1.25rem;
     list-style-type: none;
 
-    li .chapter-number {
-      font-weight: bold;
-      color: @brand-primary;
-      &::after {
-        content: ".";
+    li {
+      border-bottom: 0.1rem solid @gray-lightest;
+
+      &.chapter-number {
+        font-weight: bold;
+        color: @brand-primary;
+        &::after {
+          content: ".";
+        }
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      > div {
+        display: inline-block; // Prevent links from spilling into multiple-columns
+        width: 100%;
+
+        // Add transparent borders to prevent jumping when DnD code adds a border
+        border-top: 0.3rem solid transparent;
+        border-bottom: 0.3rem solid transparent;
+
+        &.before {
+          border-top: 0.3rem solid @brand-secondary-dim;
+        }
+
+        &.after {
+          border-bottom: 0.3rem solid @brand-secondary-dim;
+        }
+
+        &.insert {
+          background-color: rgba(110, 162, 68, 0.5);
+        }
+
+        > .name-wrapper {
+          display: inline-block;
+          vertical-align: middle;
+          cursor: pointer;
+
+          small {
+            margin-left: 1rem;
+            color: red;
+          }
+
+          .active {
+            font-weight: bold;
+            color: @brand-secondary;
+          }
+
+          > a:hover {
+            text-decoration: none;
+          }
+          &:not(.opens-introduction) {
+            color: black;
+            &:hover {
+              :not(.chapter-number),
+              :not(.title) {
+                color: gray;
+              }
+            }
+          }
+          > .opens-introduction:hover {
+            > .chapter-number,
+            > .title {
+                color: @brand-secondary-dim;
+            }
+          }
+        }
+
+        &[data-expandable="true"] {
+          > .name-wrapper {
+            width: 80%;
+
+            &::before {
+              font-size: 135%;
+              content: "\25b8"; // ▸
+              cursor: pointer;
+            }
+          }
+
+          > .edit {
+            width: 8%;
+            text-align: right;
+            vertical-align: middle;
+            opacity: 0;
+            cursor: pointer;
+          }
+        }
+
+        &[data-expanded="true"] > .name-wrapper::before {
+          content: "\25be"; // ▾
+        }
+
+        > .remove {
+          display: inline-block;
+          width: 10%;
+          color: red;
+          vertical-align: middle;
+          text-align: right;
+          opacity: 0;
+          cursor: pointer;
+        }
+
+        &:hover > .remove,
+        &:hover > .edit {
+          opacity: 1;
+        }
+      }
+
+      &.active-container > div[data-expandable="true"]:not([data-expanded="true"]) {
+        font-weight: bold;
+      }
+
+      > ul {
+        display: none; // Hide content of sections unless expanded
+        font-size: 0.95em;
+
+        &[data-expanded="true"] {
+          display: block;
+        }
       }
     }
   }

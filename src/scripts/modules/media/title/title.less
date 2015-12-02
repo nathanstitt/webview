@@ -2,7 +2,14 @@
 @import "../../../../styles/mixins.less";
 
 .media-title {
-  padding: 1.5rem 3rem;
+  padding: 1rem 3rem;
+  &.compact {
+    padding: 0 3rem;
+    font-size: 85%;
+    .large-header {
+      font-size: 1.8rem;
+    }
+  }
 
   &:not(.publishing) { background-color: @gray-lightest; }
 
@@ -21,7 +28,7 @@
     @media (min-width: @screen-sm-min) {
       display: inline-block;
       margin-right: 7%;
-      width: 60%;
+      width: ~"calc(100% - 29rem)";
 
       > h1 {
         font-weight: 400;
@@ -49,7 +56,7 @@
     @media (min-width: @screen-sm-min) {
       display: inline-block;
       margin-bottom: -3.9rem;
-      width: 32%;
+      width: 20rem;
       text-align: right;
       vertical-align: top;
     }
@@ -59,7 +66,8 @@
     }
 
     > .share {
-      margin-top: 1.5rem;
+      margin-top: 0.5rem;
+      margin-bottom: 1.5rem;
 
       @media (max-width: @screen-xs-max) {
         display: none;

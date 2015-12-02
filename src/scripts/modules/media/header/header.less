@@ -15,11 +15,19 @@
   > .title {
     margin-top: 2rem;
     overflow-wrap: break-word;
+    text-align: center;
 
     @media (min-width: @screen-sm-min) {
       display: inline-block;
       margin-right: 7%;
-      width: 60%;
+      text-align: left;
+      width: ~"calc(100% - 29rem)";
+    }
+
+    .title-chapter {
+      font-weight: 400;
+      color: @brand-primary;
+      padding-right: 0.4em;
     }
 
     // When editing is turned on the Title becomes an input box; make sure it stretches
@@ -40,11 +48,12 @@
 
   > .info {
     overflow-wrap: break-word;
+    text-align: center;
 
     @media (min-width: @screen-sm-min) {
       display: inline-block;
       margin-top: 3.5rem;
-      width: 32%;
+      width: 20rem;
       text-align: right;
       vertical-align: top;
     }

@@ -1,17 +1,29 @@
-<div {{#if editable}}draggable="true"{{/if}}>
-  <span class="name-wrapper">
-    {{#if chapter}}<span class="chapter-number">{{chapter}}</span>{{/if}}
-    <a href="{{url}}" data-page="{{page}}" data-trigger="false">
-      <span class="title{{#if active}} active{{/if}}" data-depth="{{depth}}">
-        {{title}}
-      </span>
-    </a>
-    {{~#if changed}}
-      <small><i>changed</i></small>
-    {{/if~}}
-  </span>
+{{#if visible}}
+  <div {{#if editable}}draggable="true"{{/if}}>
+    <span class="name-wrapper">
+      {{#unless isIntroduction}}
+      {{#if chapter}}<span class="chapter-number">{{chapter}}</span>{{/if}}
+      {{/unless}}
+      <a href="{{url}}" data-page="{{page}}" data-trigger="false" tabindex="1">
+        {{#unless isIntroduction}}
+        <span class="title{{#if active}} active{{/if}}" data-depth="{{depth}}">
+          {{title}}
+        </span>
+        {{/unless}}
+        {{#if searchResult}}
+          <div class="snippet">
+            {{#if occurrences}}<div>({{occurrences}} occurrences)</div>{{/if}}
+            <q>{{{searchResult}}}</q>
+          </div>
+        {{/if}}
+      </a>
+      {{~#if changed}}
+        <small><i>changed</i></small>
+      {{/if~}}
+    </span>
 
-  {{~#if editable~}}
-    <span class="remove fa fa-times"></span>
-  {{~/if~}}
-</div>
+    {{~#if editable~}}
+      <span class="remove fa fa-times"></span>
+    {{~/if~}}
+  </div>
+{{/if}}

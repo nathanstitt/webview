@@ -2,45 +2,81 @@ define (require) ->
   BaseView = require('cs!helpers/backbone/views/base')
   TocSectionView = require('cs!./toc/section')
   AddPopoverView = require('cs!./popovers/add/add')
+  BookSearchResults = require('cs!models/book-search-results')
   template = require('hbs!./contents-template')
   require('less!./contents')
 
-  cumulativeChapters = []
-  numberChapters = (toc, depth=0) ->
-    sectionNumber = 0
-    for item in toc
-      isSection = not item.get('contents')?
-      isCcap = (item.get('book')?.get('printStyle') ? '').match(/^ccap-/)?
-      if isSection
-        title = item.get('title')
-        atTopLevel = depth == 0
-        chapterNumber = cumulativeChapters[depth - 1]
-        if not isCcap
-          chapterNumber = cumulativeChapters.slice(0,depth).join('.')
-          sectionNumber = cumulativeChapters[depth] ? 0
-        if not (
-          atTopLevel or
-          isCcap and sectionNumber is 0 and title.match(/^Introduction/)
-        )
-          sectionNumber += 1
-          cumulativeChapters[depth] = sectionNumber
-          item.set('chapter', "#{chapterNumber}.#{sectionNumber}")
+  basicNumbering = (nodes, parentNumber) ->
+    for node, index in nodes
+      chapterNumber =
+        if parentNumber?
+          "#{parentNumber}.#{index+1}"
+        else
+          index+1
+      node.set('chapter', chapterNumber)
+      if node.isSection()
+        childNodes = node.get('contents')?.models
+        basicNumbering(childNodes, chapterNumber) if childNodes?
+
+  continuousNumberChapters = (nodes) ->
+    pages = allPages(nodes)
+    previousChapter = ''
+    chapterNumber = 0
+    pageNumber = 0
+    for page in pages
+      chapter = page.get('_parent')
+      if chapter? and chapter.isSection()
+        if chapter == previousChapter
+          pageNumber += 1
+        else
+          chapterNumber += 1
+          pageNumber = 0
+          previousChapter = chapter
+          # Chapters inside units get labeled "Chapter ##"
+          if chapter.get('book') is chapter.get('_parent')
+            chapter.set('chapter', chapterNumber)
+          else
+            chapter.set('chapter', "Chapter #{chapterNumber}.")
+          page.set('chapter', chapterNumber)
+        if pageNumber > 0
+          page.set('chapter', "#{chapterNumber}.#{pageNumber}")
+
+
+  allPages = (nodes, collection=[]) ->
+    _.each nodes, (node) ->
+      if node.isSection()
+        children = node.get('contents').models
+        allPages(children, collection)
       else
-        if cumulativeChapters[depth]?
-          cumulativeChapters[depth] += 1
-        else
-          cumulativeChapters[depth] = 1
-        contentsModels = item.get('contents')?.models
-        if not isCcap
-          cumulativeChapters[depth + 1] = 0
-          chapterNumber = cumulativeChapters.slice(0,depth+1).join('.')
-        else
-          chapterNumber = cumulativeChapters[depth]
-        numberChapters(contentsModels, depth+1) if contentsModels?
-        item.set('chapter', chapterNumber)
+        collection.push(node)
+    collection
 
   return class ContentsView extends BaseView
     template: template
+    templateHelpers:
+      resultCount: () ->
+        hits = @model?.get('searchResults')?.total
+        return unless hits?
+        if hits is 0
+          '''
+          <div>No matching results were found.</div>
+          '''
+        else
+          s = if hits is 1 then '' else 's'
+          """
+          <div>#{hits} page#{s} matched</div>
+          """
+      clearResults: () ->
+        hits = @model?.get('searchResults')?.total
+        return unless hits?
+        '''
+        <div>
+        <a class="clear-results" href="#">
+          <span class="fa fa-arrow-circle-left"></span>
+          Back to Table of Contents
+        </a>
+        </div>
+        '''
 
     regions:
       toc: '.toc'
@@ -48,20 +84,104 @@ define (require) ->
     events:
       'dragstart .toc [draggable]': 'onDragStart'
       'dragend .toc [draggable]': 'onDragEnd'
+      'click .clear-results': 'clearSearchResults'
 
     initialize: () ->
       super()
-      @listenTo(@model, 'change:editable removeNode moveNode add:contents', @render)
-      cumulativeChapters = []
-      numberChapters(@model.attributes.contents.models) if @model.attributes.contents?.models?
+      @listenTo(@model, 'change:editable removeNode moveNode change:currentPage', @render)
+      @listenTo(@model, 'change:contents', @processPages)
+      @listenTo(@model, 'change:searchResults', @handleSearchResults)
+      @listenTo(@model, 'change:currentPage', @loadHighlightedPage)
 
     onRender: () ->
+      @$el.addClass('table-of-contents')
       @regions.toc.show new TocSectionView
         model: @model
 
       @regions.self.append new AddPopoverView
         model: @model
         owner: @$el.find('.add.btn')
+
+    processPages: ->
+      nodes = @model.get('contents')?.models
+      if nodes?
+        isCcap = nodes[0].isCcap()
+        if isCcap
+          sections = nodes.filter((node) -> node.isSection())
+          basicNumbering(sections)
+          continuousNumberChapters(sections)
+        else
+          basicNumbering(nodes)
+        @allPages = allPages(nodes)
+        @render()
+
+    expandContainers: (page, isExpanded, handlingResults) ->
+      visible = isExpanded or not handlingResults
+      for container in page.containers()
+        container.set('expanded', isExpanded)
+        container.set('visible', visible)
+
+    handleSearchResults: ->
+      response = @model.get('searchResults')
+      handlingResults = response?
+      expandContainers = @expandContainers
+      pages = @allPages
+      _.each pages, (page) ->
+        #! Need to refactor this into a single object
+        page.unset('searchResult')
+        page.unset('searchHtml')
+        page.unset('searchTitle')
+        page.unset('searchResultCount')
+        page.set('visible', not handlingResults)
+        expandContainers(page, false, handlingResults)
+      if handlingResults
+        results = response.items ? []
+        if pages?
+          _.each results, (result) ->
+            resultId = result.id.replace(/@.*/, '')
+            snippet = result.snippet ? result.headline # backward-compatible
+            matchCount = result.matches
+            _.some pages, (page) ->
+              pageId = page.id.replace(/@.*/, '')
+              matched = (resultId == pageId)
+              if matched
+                page.set('visible', matched)
+                page.set('searchResult', snippet)
+                page.set('searchResultCount', matchCount)
+                expandContainers(page, true, true)
+              return matched
+        @loadHighlightedPage()
+      @render()
+
+    clearSearchResults: (event) ->
+      event.preventDefault()
+      @model.unset('searchResults')
+
+    loadHighlightedPage: ->
+      response = @model.get('searchResults')
+      page = @model.asPage()
+      if response and not page.get('searchHtml')
+        searchTerm = @model.get('searchResults').query.search_term
+        return if page.get('searchHtml')
+        book = page.get('book')
+        bookId = "#{book.get('id')}@#{book.get('version')}"
+        pageId = "#{page.get('id')}@#{page.get('version')}"
+        BookSearchResults.fetch(
+          bookId: "#{bookId}:#{pageId}"
+          query: response.query.search_term
+        ).done((data) ->
+          return unless data.results.items.length
+          html = data.results.items[0].html
+
+          # Adapted from models/contents/node.coffee; make a parseBody utility?
+          $body = $('<div>' + html.replace(/^[\s\S]*<body.*?>|<\/body>[\s\S]*$/g, '') + '</div>')
+          $title = $body.children('[data-type=document-title]').eq(0).remove()
+          $body.children('[data-type=abstract]').eq(0).remove()
+          html = $body.html()
+
+          page.set('searchHtml', html)
+          page.set('searchTitle', $title.html())
+        )
 
     onDragStart: (e) ->
       # Prevent children from interfering with drag events

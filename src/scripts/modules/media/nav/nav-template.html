@@ -1,27 +1,42 @@
 {{#if book}}
   <div class="media-nav{{#is status 'publishing'}} publishing{{/is}}">
-    <div class="book-nav" aria-busy="true">
-      {{#if back}}
-        <a class="nav back" href="{{back}}" data-trigger="false">Back</a>
-      {{else}}
-        <div class="nav back disabled">Back</div>
-      {{/if}}
-
+    <div class="media-toolbar">
       {{#unless _hideProgress}}
-        <div class="progress">
-          <div class="secondary progress-bar" style="width: {{percent page pages}}%;"></div>
-        </div>
-      {{else}}
-        <div class="back-to-top">
-          <a href="#">Back to Top</a>
+        <button class="toggle btn" role="button" tabindex="1">
+          <span class="fa fa-th-list"></span>
+           <span class="text">Contents</span>
+           <span class="fa fa-plus open-indicator"></span>
+         </button>
+        <div class="searchbar">
+          <span class="fa fa-search"></span>
+          <input class="find form-control" type="search" placeholder="Search this book" value="{{searchTerm}}" tabindex="2"/>
         </div>
       {{/unless}}
+      <div class="media-navbar">
+        <div class="book-nav" aria-busy="true">
+          {{#if back}}
+            <a class="nav back" href="{{back}}" data-trigger="false"{{#unless _hideProgress}} tabindex="2"{{/unless}}>Back</a>
+          {{else}}
+            <div class="nav back disabled">Back</div>
+          {{/if}}
 
-      {{#if next}}
-        <a class="nav next" href="{{next}}" data-trigger="false">Next</a>
-      {{else}}
-        <div class="nav next disabled">Next</div>
-      {{/if}}
+          {{#unless _hideProgress}}
+            <div class="progress">
+              <div class="secondary progress-bar" style="width: {{percent page pages}}%;"></div>
+            </div>
+          {{else}}
+            <div class="back-to-top">
+              <a href="#">Back to Top</a>
+            </div>
+          {{/unless}}
+
+          {{#if next}}
+            <a class="nav next" href="{{next}}" data-trigger="false"{{#unless _hideProgress}} tabindex="2"{{/unless}}>Next</a>
+          {{else}}
+            <div class="nav next disabled">Next</div>
+          {{/if}}
+        </div>
+      </div>
     </div>
   </div>
 {{/if}}
