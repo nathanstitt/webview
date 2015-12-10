@@ -166,6 +166,8 @@ module.exports = (grunt) ->
               'cs!helpers/backbone/views/editable'
 
               #'cs!configs/aloha'
+
+              'modules/header/zendesk'
             ]
             exclude: ['coffee-script', 'less/normalize']
             excludeShallow: ['settings']
